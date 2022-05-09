@@ -19,6 +19,7 @@
 <script>
 import BaseBadge from '../UI/BaseBadge.vue';
 import BaseButton from '../UI/BaseButton.vue';
+
 export default {
   components: { BaseButton, BaseBadge },
     props: ['id', 'firstName', 'lastName', 'rate', 'areas'],
