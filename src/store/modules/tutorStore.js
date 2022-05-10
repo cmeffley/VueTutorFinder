@@ -24,14 +24,35 @@ export default {
             ]
         };
     },
-    mutations: {},
-    actions: {},
+    mutations: {
+      addTutorMutation(state, payload) {
+        state.tutors.push(payload);
+      },
+    },
+    actions: {
+      addTutorAction(context, data) {
+        const tutorData = {
+          id: context.rootGetters.userId,
+          firstName: data.first,
+          lastName: data.last,
+          description: data.desc,
+          hourlyRate: data.rate,
+          areas: data.areas
+        };
+        context.commit('addTutorMutation', tutorData);
+      },
+    },
     getters: {
         tutors(state) {
             return state.tutors;
         },
         hasTutors(state) {
             return state.tutors && state.tutors.length > 0;
+        },
+        isTutor(_, getters, _2, rootGetters) {
+          const tutors = getters.tutors;
+          const userId = rootGetters.userId;
+          return tutors.some(tut => tut.id === userId);
         },
     },
 };
