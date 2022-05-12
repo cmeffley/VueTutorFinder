@@ -1,14 +1,22 @@
 <template>
+<div>
+<!-- !!error => converts the error string to a truthy/falsey value -->
+    <base-dialog :show="!!error" title="An Error has occurred" @close="handleError">
+        <p>{{ error }}</p>
+    </base-dialog>
     <section>
         <tutor-filter @change-filter="setFilters"></tutor-filter>
     </section>
     <section>
         <base-card>
             <div class="controls">
-                <base-button mode="outline">Refresh</base-button>
-                <base-button v-if="!isTutor" link to="/register">Register as a Tutor</base-button>
+                <base-button mode="outline" @click="loadTutors(true)">Refresh</base-button>
+                <base-button v-if="!isTutor && !isLoading" link to="/register">Register as a Tutor</base-button>
             </div>
-            <ul v-if="hasTutors">
+            <div v-if="isLoading">
+                <base-spinner></base-spinner>
+            </div>
+            <ul v-else-if="hasTutors">
                 <tutor-item v-for="tutor in filteredTutors"
                     :key="tutor.id"
                     :id="tutor.id"
@@ -21,55 +29,73 @@
             <h3 v-else>No Tutors Found</h3>
         </base-card>
     </section>
+</div>
 </template>
 
 <script>
 import TutorItem from '../../components/tutors/TutorItem.vue';
 import TutorFilter from '../../components/tutors/TutorFilter.vue';
 
-    export default {
-        components: {
-            TutorItem,
-            TutorFilter,
+export default {
+    components: {
+        TutorItem,
+        TutorFilter,
+    },
+    data() {
+        return {
+            isLoading: false,
+            error: null,
+            activeFilters: {
+                frontend: true,
+                backend: true,
+                career: true
+            }
+        }
+    },
+    computed: {
+        isTutor() {
+            return this.$store.getters['tutors/isTutor'];
         },
-        data() {
-            return {
-                activeFilters: {
-                    frontend: true,
-                    backend: true,
-                    career: true
+        filteredTutors() {
+            const tutors = this.$store.getters['tutors/tutors'];
+            return tutors.filter(tut => {
+                if (this.activeFilters.frontend && tut.areas.includes('frontend')) {
+                    return true;
                 }
+                if (this.activeFilters.backend && tut.areas.includes('backend')) {
+                    return true;
+                }
+                if (this.activeFilters.career && tut.areas.includes('career')) {
+                    return true;
+                }
+                return false;
+            });
+        },
+        hasTutors() {
+            return !this.isLoading && this.$store.getters['tutors/hasTutors'];
+        },
+    },
+    created() {
+        this.loadTutors();
+    },
+    methods: {
+        setFilters(updatedFilters) {
+            this.activeFilters = updatedFilters;
+        },
+        async loadTutors(refresh = false) {
+            this.isLoading = true;
+            try {
+                await this.$store.dispatch('tutors/loadTutors', { forceRefresh: refresh});
+            } catch(error) {
+                this.error = error.message || 'Something went wrong';
             }
+            this.isLoading = false;
         },
-        computed: {
-            isTutor() {
-                return this.$store.getters['tutors/isTutor'];
-            },
-            filteredTutors() {
-               const tutors = this.$store.getters['tutors/tutors'];
-               return tutors.filter(tut => {
-                  if (this.activeFilters.frontend && tut.areas.includes('frontend')) {
-                      return true;
-                  }
-                  if (this.activeFilters.backend && tut.areas.includes('backend')) {
-                      return true;
-                  }
-                  if (this.activeFilters.career && tut.areas.includes('career')) {
-                      return true;
-                  }
-                  return false;
-               });
-            },
-            hasTutors() {
-                return this.$store.getters['tutors/hasTutors'];
-            }
+        handleError() {
+            this.error = null;
         },
-        methods: {
-            setFilters(updatedFilters) {
-                this.activeFilters = updatedFilters;
-            },
-        },
-    };
+    },
+};
 </script>
 
 <style scoped>
