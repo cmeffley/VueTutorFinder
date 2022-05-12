@@ -2,6 +2,7 @@ export default {
     namespaced: true,
     state() {
         return {
+          lastFetch: null,
           tutors:  [
                 {
                   id: 'c1',
@@ -28,18 +29,66 @@ export default {
       addTutorMutation(state, payload) {
         state.tutors.push(payload);
       },
+      setTutors(state, payload) {
+        state.tutors = payload;
+      },
+      setFetchTimeStamp(state) {
+        state.lastFetch = new Date().getTime();
+      },
     },
     actions: {
-      addTutorAction(context, data) {
+      async addTutorAction(context, data) {
+        const userId = context.rootGetters.userId;
         const tutorData = {
-          id: context.rootGetters.userId,
           firstName: data.first,
           lastName: data.last,
           description: data.desc,
           hourlyRate: data.rate,
           areas: data.areas
         };
-        context.commit('addTutorMutation', tutorData);
+
+        const response = await fetch(`https://vue-http-demo-11f98-default-rtdb.firebaseio.com/tutors/${userId}.json`, {
+          method: 'PUT',
+          body: JSON.stringify(tutorData)
+        });
+
+        // const responseData = await response.json();
+
+        if (!response.ok) {
+          // error
+        }
+
+        context.commit('addTutorMutation', {
+          ...tutorData,
+          id: userId,
+        });
+      },
+      async loadTutors(context, payload) {
+        if(!payload.forceRefresh && !context.getters.shouldUpdate) {
+          return;
+        }
+
+        const response = await fetch(`https://vue-http-demo-11f98-default-rtdb.firebaseio.com/tutors.json`);
+        const responseData = await response.json();
+
+        if(!response.ok) {
+          const error = new Error(response.message || 'Failed to get data');
+          throw error;
+        }
+        const tutors = [];
+        for (const key in responseData) {
+          const tutor = {
+            id: key,
+            firstName: responseData[key].firstName,
+            lastName: responseData[key].lastName,
+            description: responseData[key].description,
+            hourlyRate: responseData[key].hourlyRate,
+            areas: responseData[key].areas
+          };
+          tutors.push(tutor);
+        }
+        context.commit('setTutors', tutors);
+        context.commit('setFetchTimeStamp');
       },
     },
     getters: {
@@ -53,6 +102,15 @@ export default {
           const tutors = getters.tutors;
           const userId = rootGetters.userId;
           return tutors.some(tut => tut.id === userId);
+        },
+        shouldUpdate(state) {
+          const lastFetch = state.lastFetch;
+          if(!lastFetch) {
+            return true;
+          } else {
+            const currentTimestamp = new Date().getTime();
+            return (currentTimestamp - lastFetch) / 1000 > 60;
+          }
         },
     },
 };
