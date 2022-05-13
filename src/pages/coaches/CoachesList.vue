@@ -11,7 +11,8 @@
         <base-card>
             <div class="controls">
                 <base-button mode="outline" @click="loadTutors(true)">Refresh</base-button>
-                <base-button v-if="!isTutor && !isLoading" link to="/register">Register as a Tutor</base-button>
+                <base-button v-if="!isLoggedIn" link to="/auth?redirect=register">Log In to Register as a Tutor</base-button>
+                <base-button v-if="isLoggedIn && !isTutor && !isLoading" link to="/register">Register as a Tutor</base-button>
             </div>
             <div v-if="isLoading">
                 <base-spinner></base-spinner>
@@ -38,9 +39,9 @@ import TutorFilter from '../../components/tutors/TutorFilter.vue';
 
 export default {
     components: {
-        TutorItem,
-        TutorFilter,
-    },
+    TutorItem,
+    TutorFilter,
+},
     data() {
         return {
             isLoading: false,
@@ -74,6 +75,9 @@ export default {
         hasTutors() {
             return !this.isLoading && this.$store.getters['tutors/hasTutors'];
         },
+        isLoggedIn() {
+            return this.$store.getters.isAuthenticated;
+        }
     },
     created() {
         this.loadTutors();
