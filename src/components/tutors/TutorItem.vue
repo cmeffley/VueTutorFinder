@@ -23,6 +23,11 @@ import BaseButton from '../UI/BaseButton.vue';
 export default {
   components: { BaseButton, BaseBadge },
     props: ['id', 'firstName', 'lastName', 'rate', 'areas'],
+    data() {
+      return {
+        isDisabled: false,
+      }
+    },
     computed: {
         fullName() {
             return this.firstName + ' ' + this.lastName;
