@@ -13,7 +13,7 @@
                 <base-button link :to="contactLink">Contact</base-button>
             </header>
             <router-view></router-view>
-        </base-card>>
+        </base-card>
     </section>
     <section>
         <base-card>
@@ -54,7 +54,11 @@ export default {
             return this.selectedTutor.description;
         },
         contactLink() {
-            return this.$route.path + '/' + this.id + '/contact';
+            if(this.$route.path.includes('contact')) {
+                return `${this.$route.path}`;
+            } else {
+                return `${this.$route.path}/contact`;
+            }
         }
     },
     created() {

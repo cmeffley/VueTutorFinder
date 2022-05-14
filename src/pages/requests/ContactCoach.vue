@@ -71,8 +71,8 @@ textarea {
 
 input:focus,
 textarea:focus {
-  border-color: #3d008d;
-  background-color: #faf6ff;
+  border-color: #2a4430;
+  background-color: #eafbed;
   outline: none;
 }
 
