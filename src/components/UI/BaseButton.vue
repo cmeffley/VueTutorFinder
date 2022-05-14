@@ -54,7 +54,7 @@ button:active {
 
 .flat {
   background-color: transparent;
-  color: #3a0061;
+  color: #2a4430;
   border: none;
 }
 
